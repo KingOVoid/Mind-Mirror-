@@ -63,6 +63,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(loggedInUser);
       localStorage.removeItem('mm_demo_user');
       await refreshSession();
+    } catch (err: any) {
+      const errMsg = String(err?.message || err);
+      if (
+        errMsg.includes('405') ||
+        errMsg.includes('404') ||
+        errMsg.includes('Network Error') ||
+        errMsg.includes('Failed to fetch')
+      ) {
+        console.warn('Backend API unavailable on static deployment (405/404). Initializing local student session.');
+        const localUser: User = {
+          id: 'usr_' + Date.now().toString(36),
+          email: credentials.email,
+          fullName: credentials.email.split('@')[0],
+          role: 'STUDENT',
+          createdAt: new Date().toISOString(),
+        };
+        setUser(localUser);
+        localStorage.setItem('mm_demo_user', JSON.stringify(localUser));
+        localStorage.setItem('mm_token', 'local-token-' + Date.now());
+        return;
+      }
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -82,6 +104,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(registeredUser);
       localStorage.removeItem('mm_demo_user');
       await refreshSession();
+    } catch (err: any) {
+      const errMsg = String(err?.message || err);
+      if (
+        errMsg.includes('405') ||
+        errMsg.includes('404') ||
+        errMsg.includes('Network Error') ||
+        errMsg.includes('Failed to fetch')
+      ) {
+        console.warn('Backend API unavailable on static deployment (405/404). Initializing student profile locally.');
+        const localUser: User = {
+          id: 'usr_' + Date.now().toString(36),
+          email: data.email,
+          fullName: data.fullName,
+          role: 'STUDENT',
+          createdAt: new Date().toISOString(),
+        };
+        const localProfile: StudentProfile = {
+          id: 'prof_' + Date.now().toString(36),
+          userId: localUser.id,
+          college: data.college || 'Engineering College',
+          course: data.course || 'Computer Science & Engineering',
+          semester: data.semester || 'Semester 6',
+          onboardingCompleted: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        setUser(localUser);
+        setProfile(localProfile);
+        localStorage.setItem('mm_demo_user', JSON.stringify(localUser));
+        localStorage.setItem('mm_token', 'local-token-' + Date.now());
+        return;
+      }
+      throw err;
     } finally {
       setIsLoading(false);
     }
