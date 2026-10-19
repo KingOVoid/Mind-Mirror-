@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.env
+.env.*
+env.local
+*.local
+!.env.example
+*.log
+.DS_Store
+.vscode/
+.idea/
+mindmirror-review.zip
+.vercel
+.neon

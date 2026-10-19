@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Production builds
+dist/
+build/
+.output/
+
+# Environment and Secrets
+.env
+.env.*
+*.env
+*.env.*
+env.local
+*.local
+!.env.example
+
+# Cloud & Deployments
+.vercel
+.neon
+
+# IDE & OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+mindmirror-review.zip

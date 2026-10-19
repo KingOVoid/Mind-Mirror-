@@ -1,0 +1,9 @@
+{
+  "name": "mindmirror2-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix mindmirror2/client run dev --",
+    "build": "npm --prefix mindmirror2/client run build"
+  }
+}

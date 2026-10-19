@@ -1,0 +1,593 @@
+// Mind Mirror — Prisma Schema
+// Normalized relational schema for the learning-intelligence platform.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// ENUMS
+// ────────────────────────────────────────────────────────────────────────────
+
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+enum MasteryStatus {
+  NOT_STARTED
+  LEARNING
+  WEAK
+  IMPROVING
+  STRONG
+  MASTERED
+  AT_RISK
+}
+
+enum RetentionStatus {
+  FRESH
+  STABLE
+  NEEDS_REVISION
+  AT_RISK
+  LIKELY_FORGOTTEN
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  MULTIPLE_SELECT
+  FILL_IN_BLANK
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+  ABANDONED
+}
+
+enum NotificationType {
+  REVISION_DUE
+  TEST_RESULT
+  QUIZ_RECOMMENDATION
+  STREAK_REMINDER
+  WEAK_TOPIC
+  NEW_TEST
+  SYSTEM
+}
+
+enum StudyPreferenceStyle {
+  VISUAL
+  READING
+  PRACTICE
+  MIXED
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// AUTH / USER
+// ────────────────────────────────────────────────────────────────────────────
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String
+  fullName      String
+  role          Role     @default(STUDENT)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  studentProfile     StudentProfile?
+  learningProfile    LearningProfile?
+  notifications      Notification[]
+  passwordResets     PasswordResetToken[]
+  studySessions      StudySession[]
+  quizAttempts       QuizAttempt[]
+  testAttempts       TestAttempt[]
+  topicProgress      TopicProgress[]
+  mistakes           Mistake[]
+  achievements       UserAchievement[]
+  recommendations    Recommendation[]
+  questionsCreated   Question[]            @relation("QuestionAuthor")
+  subjectsCreated    Subject[]             @relation("SubjectOwner")
+
+  @@index([email])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+}
+
+model StudentProfile {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  college       String?
+  course        String?
+  semester      String?
+
+  // onboarding data
+  onboardingComplete Boolean  @default(false)
+  learningGoals      String?
+  preferredStudyTime String?
+  targetExamDate     DateTime?
+  preferredLearningStyle StudyPreferenceStyle? @default(MIXED)
+  dailyStudyTargetMinutes Int? @default(30)
+  strongSubjectTags  String[] @default([])
+  weakSubjectTags    String[] @default([])
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// SUBJECT / TOPIC / QUESTION
+// ────────────────────────────────────────────────────────────────────────────
+
+model Subject {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  icon        String?  @default("BookOpen")
+  isGlobal    Boolean  @default(false) // seeded/admin subjects visible to all
+  ownerId     String?
+  owner       User?    @relation("SubjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  topics        Topic[]
+  questions     Question[]
+  quizzes       Quiz[]
+  tests         Test[]
+  topicProgress TopicProgress[]
+
+  @@index([ownerId])
+}
+
+model Topic {
+  id          String   @id @default(uuid())
+  subjectId   String
+  subject     Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  parentId    String?  // for subtopics
+  parent      Topic?   @relation("TopicHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children    Topic[]  @relation("TopicHierarchy")
+
+  name        String
+  description String?
+  orderIndex  Int      @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  questions     Question[]
+  progress      TopicProgress[]
+  quizQuestions QuizQuestion[]
+  testQuestions TestQuestion[]
+  mistakes      Mistake[]
+
+  @@index([subjectId])
+  @@index([parentId])
+}
+
+model Question {
+  id           String       @id @default(uuid())
+  subjectId    String
+  subject      Subject      @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  topicId      String
+  topic        Topic        @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  type         QuestionType @default(MULTIPLE_CHOICE)
+  text         String
+  options      Json?        // array of {id, text} for MCQ/MSQ/TF
+  correctAnswer Json        // string, string[], or boolean depending on type
+  explanation  String?
+  difficulty   Difficulty   @default(MEDIUM)
+  concept      String?
+
+  authorId     String?
+  author       User?        @relation("QuestionAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  isActive     Boolean      @default(true)
+
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  quizQuestions QuizQuestion[]
+  testQuestions TestQuestion[]
+  quizAnswers   QuizAnswer[]
+  testAnswers   TestAnswer[]
+  mistakes      Mistake[]
+
+  @@index([subjectId])
+  @@index([topicId])
+  @@index([difficulty])
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// QUIZ SYSTEM
+// ────────────────────────────────────────────────────────────────────────────
+
+model Quiz {
+  id          String     @id @default(uuid())
+  userId      String?    // personalized/generated quizzes belong to a user; null = template
+  subjectId   String
+  subject     Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  title       String
+  difficulty  Difficulty @default(MEDIUM)
+  isPersonalized Boolean @default(false)
+  isAdaptive     Boolean @default(false)
+
+  createdAt   DateTime   @default(now())
+
+  questions   QuizQuestion[]
+  attempts    QuizAttempt[]
+
+  @@index([subjectId])
+  @@index([userId])
+}
+
+model QuizQuestion {
+  id          String   @id @default(uuid())
+  quizId      String
+  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  questionId  String
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  topicId     String
+  topic       Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  orderIndex  Int      @default(0)
+
+  answers     QuizAnswer[]
+
+  @@index([quizId])
+  @@index([questionId])
+}
+
+model QuizAttempt {
+  id          String        @id @default(uuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quizId      String
+  quiz        Quiz          @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  status      AttemptStatus @default(IN_PROGRESS)
+  startedAt   DateTime      @default(now())
+  submittedAt DateTime?
+
+  totalQuestions   Int      @default(0)
+  correctCount     Int      @default(0)
+  incorrectCount   Int      @default(0)
+  scorePercent     Float    @default(0)
+  avgResponseTimeMs Int     @default(0)
+  avgConfidence    Float?
+
+  answers     QuizAnswer[]
+
+  @@index([userId])
+  @@index([quizId])
+}
+
+model QuizAnswer {
+  id              String       @id @default(uuid())
+  attemptId       String
+  attempt         QuizAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  quizQuestionId  String
+  quizQuestion    QuizQuestion @relation(fields: [quizQuestionId], references: [id], onDelete: Cascade)
+  questionId      String
+  question        Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  selectedAnswer  Json?
+  isCorrect       Boolean      @default(false)
+  timeSpentMs     Int          @default(0)
+  confidenceRating Int?        // 1-5
+  attemptNumber   Int          @default(1)
+  answeredAt      DateTime     @default(now())
+
+  @@index([attemptId])
+  @@index([questionId])
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// TEST (EXAM) SYSTEM
+// ────────────────────────────────────────────────────────────────────────────
+
+model Test {
+  id            String     @id @default(uuid())
+  createdById   String?
+  title         String
+  subjectId     String
+  subject       Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  instructions  String?
+  difficulty    Difficulty @default(MEDIUM)
+  timeLimitMin  Int        @default(30)
+  isPublished   Boolean    @default(true)
+
+  createdAt     DateTime   @default(now())
+
+  questions     TestQuestion[]
+  attempts      TestAttempt[]
+
+  @@index([subjectId])
+}
+
+model TestQuestion {
+  id          String   @id @default(uuid())
+  testId      String
+  test        Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  questionId  String
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  topicId     String
+  topic       Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  orderIndex  Int      @default(0)
+
+  answers     TestAnswer[]
+
+  @@index([testId])
+  @@index([questionId])
+}
+
+model TestAttempt {
+  id            String        @id @default(uuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  testId        String
+  test          Test          @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  status        AttemptStatus @default(IN_PROGRESS)
+  startedAt     DateTime      @default(now())
+  submittedAt   DateTime?
+  timeUsedSec   Int           @default(0)
+
+  totalQuestions  Int   @default(0)
+  correctCount    Int   @default(0)
+  incorrectCount  Int   @default(0)
+  unansweredCount Int   @default(0)
+  scorePercent    Float @default(0)
+
+  topicBreakdown  Json? // { topicId: { correct, total, accuracy } }
+  difficultyBreakdown Json? // { EASY: {...}, MEDIUM: {...}, HARD: {...} }
+
+  answers       TestAnswer[]
+
+  @@index([userId])
+  @@index([testId])
+}
+
+model TestAnswer {
+  id              String       @id @default(uuid())
+  attemptId       String
+  attempt         TestAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  testQuestionId  String
+  testQuestion    TestQuestion @relation(fields: [testQuestionId], references: [id], onDelete: Cascade)
+  questionId      String
+  question        Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  selectedAnswer  Json?
+  isCorrect       Boolean      @default(false)
+  markedForReview Boolean      @default(false)
+  timeSpentMs     Int          @default(0)
+  answeredAt      DateTime?
+
+  @@unique([attemptId, testQuestionId])
+  @@index([attemptId])
+  @@index([questionId])
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// STUDY SESSIONS
+// ────────────────────────────────────────────────────────────────────────────
+
+model StudySession {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjectId   String?
+  topicId     String?
+
+  startedAt   DateTime  @default(now())
+  endedAt     DateTime?
+  pausedMs    Int       @default(0)
+  durationSec Int       @default(0)
+  notes       String?
+  isActive    Boolean   @default(true)
+
+  createdAt   DateTime  @default(now())
+
+  @@index([userId])
+  @@index([startedAt])
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// TOPIC PROGRESS (per user per topic)
+// ────────────────────────────────────────────────────────────────────────────
+
+model TopicProgress {
+  id                String          @id @default(uuid())
+  userId            String
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjectId         String
+  subject           Subject         @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  topicId           String
+  topic             Topic           @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  attempts          Int             @default(0)
+  correctAnswers    Int             @default(0)
+  incorrectAnswers  Int             @default(0)
+  accuracy          Float           @default(0)
+  avgResponseTimeMs Int             @default(0)
+  avgConfidence     Float?
+  confidenceCalibration Float?      // correctness-confidence alignment, -1..1
+
+  knowledgeScore    Float           @default(0)   // 0-100
+  avgDifficultyWeight Float         @default(0.7) // 0-1, average difficulty weight of attempted questions
+  difficultyLevel   Difficulty      @default(MEDIUM) // adaptive difficulty tracked per topic
+  masteryStatus     MasteryStatus   @default(NOT_STARTED)
+
+  retentionStatus   RetentionStatus @default(FRESH)
+  retentionScore    Float           @default(100) // 0-100 estimate
+  revisionCount     Int             @default(0)   // distinct study/quiz/test sessions touching this topic
+
+  successfulRecalls Int             @default(0)
+  lastStudiedAt     DateTime?
+  lastAssessedAt    DateTime?
+
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@unique([userId, topicId])
+  @@index([userId])
+  @@index([topicId])
+  @@index([masteryStatus])
+  @@index([retentionStatus])
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// LEARNING PROFILE (Cognitive Twin, aggregate)
+// ────────────────────────────────────────────────────────────────────────────
+
+model LearningProfile {
+  id                     String   @id @default(uuid())
+  userId                 String   @unique
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  overallKnowledgeScore  Float    @default(0)
+  avgAccuracy            Float    @default(0)
+  avgConfidence          Float    @default(0)
+  confidenceAccuracyGap  Float    @default(0) // positive = overconfident
+  avgResponseTimeMs      Int      @default(0)
+  learningConsistency    Float    @default(0) // 0-100, based on regularity of activity
+
+  currentStreak          Int      @default(0)
+  longestStreak          Int      @default(0)
+  lastActiveDate         DateTime?
+
+  totalStudyTimeMin      Int      @default(0)
+  totalQuizzes           Int      @default(0)
+  totalTests             Int      @default(0)
+
+  strongTopicsCount      Int      @default(0)
+  weakTopicsCount         Int      @default(0)
+  atRiskTopicsCount       Int      @default(0)
+  forgottenTopicsCount    Int      @default(0)
+
+  lastComputedAt          DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// RECOMMENDATIONS
+// ────────────────────────────────────────────────────────────────────────────
+
+model Recommendation {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type        String   // REVISE_TOPIC, DIFFICULTY_UP, MISCONCEPTION, CONFIDENCE_GAP, STREAK, FORGETTING, GENERAL
+  title       String
+  message     String
+  subjectId   String?
+  topicId     String?
+  priority    Int      @default(1) // 1 low - 5 high
+  isActive    Boolean  @default(true)
+  isDismissed Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime?
+
+  @@index([userId])
+  @@index([isActive])
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// NOTIFICATIONS
+// ────────────────────────────────────────────────────────────────────────────
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type      NotificationType @default(SYSTEM)
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean          @default(false)
+
+  createdAt DateTime         @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// MISTAKES
+// ────────────────────────────────────────────────────────────────────────────
+
+model Mistake {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId      String
+  question        Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  topicId         String
+  topic           Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  lastSelectedAnswer Json?
+  timesWrong      Int      @default(1)
+  timesCorrectedSince Int  @default(0)
+  lastConfidence  Int?
+  lastAttemptedAt DateTime @default(now())
+  resolved        Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([userId, questionId])
+  @@index([userId])
+  @@index([topicId])
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// ACHIEVEMENTS
+// ────────────────────────────────────────────────────────────────────────────
+
+model Achievement {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  title       String
+  description String
+  icon        String?  @default("Award")
+
+  users       UserAchievement[]
+}
+
+model UserAchievement {
+  id            String      @id @default(uuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  earnedAt      DateTime    @default(now())
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+}

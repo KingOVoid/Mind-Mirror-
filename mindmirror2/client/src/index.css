@@ -1,0 +1,281 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
+@config "../tailwind.config.js";
+@plugin "@tailwindcss/typography";
+
+
+
+@theme {
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Zen Nature Minimalist Earthy Palette */
+  --color-zen-cream: #F8F6F1;
+  --color-zen-sand: #F2ECE4;
+  --color-zen-surface: #FFFFFF;
+  --color-zen-paper: #FAF8F5;
+  --color-zen-border: #E6E1D8;
+  --color-zen-border-subtle: #EFEBE3;
+  --color-zen-sage: #5B8266;
+  --color-zen-sage-light: #EDF3EE;
+  --color-zen-sage-border: #C8D7CB;
+  --color-zen-sage-dark: #43634D;
+  --color-zen-charcoal: #242725;
+  --color-zen-charcoal-body: #373C38;
+  --color-zen-charcoal-muted: #6D736E;
+  --color-zen-charcoal-faint: #959B96;
+  --color-zen-terracotta: #B86B43;
+  --color-zen-terracotta-light: #F7EFEA;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background-color: transparent;
+  color: #242725;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+   SPATIAL ZEN FROSTED GLASSMORPHISM UI (Calm, High-End & Nature-Inspired)
+   ──────────────────────────────────────────────────────────────────────────── */
+
+.zen-glass {
+  background-color: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 8px 32px 0 rgba(80, 85, 80, 0.05);
+}
+
+.zen-glass-card {
+  background-color: rgba(255, 255, 255, 0.52);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+}
+
+.zen-glass-subtle {
+  background-color: rgba(255, 255, 255, 0.32);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+}
+
+.zen-card {
+  background-color: rgba(255, 255, 255, 0.60);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.zen-card-sand {
+  background-color: rgba(250, 248, 245, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.60);
+  border-radius: 12px;
+}
+
+/* Subtle notebook rule separator */
+.zen-rule {
+  border-bottom: 1px solid #EFEBE3;
+}
+
+/* Lined notebook rule effect */
+.zen-lined {
+  background-image: repeating-linear-gradient(
+    transparent,
+    transparent 31px,
+    #EFEBE3 31px,
+    #EFEBE3 32px
+  );
+  line-height: 32px;
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+   PHYSICAL NOTEBOOK 3D PAGE-FLIPPING ANIMATIONS
+   ──────────────────────────────────────────────────────────────────────────── */
+
+.notebook-desk-perspective {
+  perspective: 1800px;
+}
+
+.notebook-page-container {
+  transform-style: preserve-3d;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
+}
+
+@keyframes pageFlipForward {
+  0% {
+    transform: rotateY(16deg) scale(0.985);
+    opacity: 0.5;
+    box-shadow: -15px 15px 35px rgba(0, 0, 0, 0.12);
+  }
+  100% {
+    transform: rotateY(0deg) scale(1);
+    opacity: 1;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  }
+}
+
+@keyframes pageFlipBackward {
+  0% {
+    transform: rotateY(-16deg) scale(0.985);
+    opacity: 0.5;
+    box-shadow: 15px 15px 35px rgba(0, 0, 0, 0.12);
+  }
+  100% {
+    transform: rotateY(0deg) scale(1);
+    opacity: 1;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  }
+}
+
+.animate-page-flip-forward {
+  animation: pageFlipForward 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-page-flip-backward {
+  animation: pageFlipBackward 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Notebook paper texture and deckle page edges */
+.notebook-deckle-edge {
+  box-shadow:
+    inset -1px 0 0 rgba(0, 0, 0, 0.04),
+    3px 0 0 -1px #FAF8F5,
+    4px 0 0 -1px #EAE4D8,
+    7px 0 0 -2px #FAF8F5,
+    8px 0 0 -2px #E4DDD0,
+    11px 0 0 -3px #FAF8F5,
+    12px 0 0 -3px #DFD7C8;
+}
+
+/* Soft sage green accent button */
+.zen-btn-sage {
+  background-color: #5B8266;
+  color: #FFFFFF;
+  border: 1px solid #4D6D56;
+  transition: all 0.15s ease-in-out;
+}
+.zen-btn-sage:hover {
+  background-color: #4A6D54;
+}
+
+/* Soft sage subtle chip / badge */
+.zen-pill-sage {
+  background-color: #EDF3EE;
+  color: #43634D;
+  border: 1px solid #C8D7CB;
+}
+
+/* Sandstone neutral button */
+.zen-btn-neutral {
+  background-color: #FAF8F5;
+  color: #373C38;
+  border: 1px solid #E6E1D8;
+  transition: all 0.15s ease-in-out;
+}
+.zen-btn-neutral:hover {
+  background-color: #F2ECE4;
+  color: #242725;
+}
+
+/* Typography Helpers */
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Clean Minimal Stone Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: #D5CEBF;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #B8B0A2;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+   PROSE ZEN NATURE TYPOGRAPHY STYLING (Headers, Lists, Bold, Code)
+   ──────────────────────────────────────────────────────────────────────────── */
+.prose {
+  color: #373C38;
+}
+
+.prose h1, .prose h2, .prose h3, .prose h4 {
+  color: #242725;
+  font-family: var(--font-display);
+  font-weight: 700;
+  margin-top: 0.8em;
+  margin-bottom: 0.4em;
+  line-height: 1.3;
+}
+
+.prose h1 { font-size: 1.25rem; }
+.prose h2 { font-size: 1.1rem; }
+.prose h3 { font-size: 0.95rem; }
+.prose h4 { font-size: 0.85rem; }
+
+.prose p {
+  margin-top: 0.4em;
+  margin-bottom: 0.4em;
+  line-height: 1.6;
+}
+
+.prose ul, .prose ol {
+  margin-top: 0.4em;
+  margin-bottom: 0.4em;
+  padding-left: 1.25em;
+  list-style-type: disc;
+}
+
+.prose ol {
+  list-style-type: decimal;
+}
+
+.prose li {
+  margin-top: 0.2em;
+  margin-bottom: 0.2em;
+}
+
+.prose strong {
+  color: #242725;
+  font-weight: 600;
+}
+
+.prose code {
+  color: #43634D;
+  background-color: #FAF8F5;
+  border: 1px solid #E6E1D8;
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+
+.prose blockquote {
+  border-left: 3px solid #5B8266;
+  padding-left: 0.75em;
+  font-style: italic;
+  color: #525853;
+  margin: 0.5em 0;
+}
+
