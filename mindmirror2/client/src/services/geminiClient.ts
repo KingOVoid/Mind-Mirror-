@@ -25,9 +25,10 @@ function getRuntimeApiKey(): string {
 }
 
 const CANDIDATE_MODELS = [
+  'gemini-3.1-flash-lite',
+  'gemini-3.5-flash-lite',
   'gemini-3.8-flash',
   'gemini-3.5-flash',
-  'gemini-3.5-flash-lite',
   'gemini-flash-latest',
 ];
 
@@ -445,7 +446,7 @@ export async function generateNexusQuiz(
       const prompt = `Topic: "${topic}"\n\nReference Material:\n${(studyMaterialText || '').slice(0, 3000)}\n\nGenerate exactly 5 multiple choice questions with 4 options each. Return valid JSON only: {"questions": [{"id": "q1", "question": "...", "options": ["A", "B", "C", "D"], "correctAnswer": "A", "explanation": "..."}]}`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.8-flash',
+        model: 'gemini-3.1-flash-lite',
         contents: prompt,
         config: { systemInstruction: NEXUS_SYSTEM_INSTRUCTION },
       });

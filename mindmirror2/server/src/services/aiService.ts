@@ -54,7 +54,7 @@ async function callGemini(prompt: string, systemInstruction?: string): Promise<s
 
   try {
     const ai = getGeminiClient() || new GoogleGenAI({ apiKey });
-    const model = env.GEMINI_MODEL || 'gemini-3.8-flash';
+    const model = env.GEMINI_MODEL || 'gemini-3.1-flash-lite';
 
     const response = await ai.models.generateContent({
       model,
