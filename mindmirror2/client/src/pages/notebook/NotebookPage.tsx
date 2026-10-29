@@ -54,53 +54,130 @@ function resolveSubjectForTopic(topic: string): StudySubject {
   const trimmed = topic.trim();
   if (!trimmed) return STUDY_SUBJECTS[0];
 
+  const lower = trimmed.toLowerCase();
+
+  // 1. Direct match with preset subjects
   const matched = STUDY_SUBJECTS.find(
     (s) =>
-      s.title.toLowerCase().includes(trimmed.toLowerCase()) ||
-      s.tag.toLowerCase().includes(trimmed.toLowerCase()) ||
-      s.id.toLowerCase() === trimmed.toLowerCase()
+      s.title.toLowerCase().includes(lower) ||
+      s.tag.toLowerCase().includes(lower) ||
+      s.id.toLowerCase() === lower
   );
   if (matched) return matched;
 
-  // Custom Topic Isolation Object
+  // 2. Specific matching for AI Mythology, Automata & Ancient History (Course 23N502 Slide 2)
+  if (
+    lower.includes('myth') ||
+    lower.includes('talos') ||
+    lower.includes('automata') ||
+    lower.includes('golem') ||
+    lower.includes('history') ||
+    lower.includes('ancient') ||
+    lower.includes('origin')
+  ) {
+    return {
+      id: 'ai-mythology-history',
+      title: 'AI Mythology, Automata & Early Mechanization',
+      code: '23N502-U1-HIST',
+      tag: 'AI History & Mythology',
+      progress: 92,
+      overview:
+        'Exploration of ancient myths of artificial life (Talos of Crete, Pygmalion, Golem of Prague), mechanical automata (Hero of Alexandria, Vaucanson), and philosophical mechanization of human thought (Descartes, Leibniz, Lovelace) leading to the 1956 Dartmouth Workshop.',
+      governingFormulas: [
+        {
+          name: "Leibniz's Symbolic Reasoning Calculus (1680s)",
+          latex: '\\text{Reasoning} \\equiv \\text{Symbolic Calculation} \\implies \\text{"Calculemus!" ("Let us calculate!")}',
+          description:
+            'Gottfried Leibniz proposed the Characteristica Universalis and Calculus Ratiocinator, asserting that all rational disputes could be solved through mathematical calculation.',
+        },
+        {
+          name: "Descartes' Mind-Body Automata Dualism (1637)",
+          latex: '\\text{Cogito ergo sum} \\implies \\text{Mechanical Body (Automaton)} \\neq \\text{Rational Soul (Immaterial)}',
+          description:
+            'René Descartes viewed animal and human physical bodies as complex mechanical automata governed by clockwork physics, while consciousness remained immaterial.',
+        },
+        {
+          name: 'McCulloch-Pitts Artificial Neuron Formulation (1943)',
+          latex: 'y = \\Theta\\left(\\sum_{i=1}^n w_i x_i - \\theta\\right), \\quad \\Theta(z) = \\begin{cases} 1 & z \\ge 0 \\\\ 0 & z < 0 \\end{cases}',
+          description:
+            'Warren McCulloch and Walter Pitts created the first mathematical model of a neural network using threshold logic, bridging biological brain mythology with computer science.',
+        },
+      ],
+      readingNotes: `### Ancient Mythology & The Mechanization of Mind (Course 23N502)
+
+#### 1. Ancient Myths of Artificial Beings
+- **Talos of Crete (Greek Mythology)**:
+  Forged from bronze by Hephaestus to guard Crete. It marched around the island's shores three times daily and threw boulders at approaching vessels — the first conceptualization of an autonomous defense robot.
+- **Pygmalion and Galatea (Ovid's Metamorphoses)**:
+  The sculptor Pygmalion sculpted an ivory statue of such perfection that he fell in love with it; Aphrodite gave Galatea life.
+- **The Golem of Prague (16th Century)**:
+  Created from river clay by Rabbi Judah Loew and animated through the inscription of sacred Hebrew letters (*Emet* = Truth). Exemplified an obedient servant agent bound by explicit instructions.
+
+---
+
+#### 2. Clockwork Automata (Classical & Enlightenment Era)
+- **Hero of Alexandria (1st Century AD)**: Pneumatic and hydraulic theater automata, mechanical birds, self-opening temple doors.
+- **Jacques de Vaucanson (1739)**: Created the *Canard Digérateur* (Digesting Duck) containing over 400 moving mechanical parts to demonstrate that organic bodily functions could be mechanistically simulated.
+- **The Mechanical Turk (1770)**: Wolfgang von Kempelen's chess automaton, which ignited worldwide passion for machine intelligence.
+
+---
+
+#### 3. Philosophers of Mechanical Reasoning
+- **René Descartes (1596–1650)**:
+  - *"Cogito ergo sum"* — "I think, therefore I am."
+  - Posited that physical bodies operate as biological automata governed by mechanical principles.
+- **Gottfried Wilhelm Leibniz (1646–1716)**:
+  - Envisioned a universal symbolic reasoning calculus: *"Let us calculate without dispute!"*
+  - Precursor to symbolic AI, Boolean logic, and propositional knowledge representation.
+
+---
+
+#### 4. The Modern AI Genesis
+- **Ada Lovelace & Charles Babbage (1840s)**: Conceived the Analytical Engine and recognized computers could manipulate symbols, not merely numbers.
+- **Alan Turing (1950)**: Formulated the Turing Test in *"Computing Machinery and Intelligence"*.
+- **Dartmouth Workshop (1956)**: John McCarthy, Marvin Minsky, Nathaniel Rochester, and Claude Shannon coined the term **"Artificial Intelligence"**, establishing the field.`,
+      defaultNotebookContent: `## Notes: AI Mythology & Historical Foundations
+- Ancient Myths: Talos of Crete (Hephaestus' bronze automaton), Golem of Prague, Galatea.
+- Automata: Vaucanson's mechanical duck (1739) proved behavior can be mechanically modeled.
+- Descartes: Animals as complex automata; mind-body dualism.
+- Leibniz: Reasoning as calculation ("Calculemus!").
+- Dartmouth 1956: John McCarthy officially coins "Artificial Intelligence".`,
+    };
+  }
+
+  // 3. Dynamic Custom Topic Isolation for AI & Computing
   return {
     id: `custom-${trimmed.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
     title: trimmed,
-    code: `TOPIC-${Math.floor(100 + Math.random() * 899)}`,
+    code: `23N502-${Math.floor(100 + Math.random() * 899)}`,
     tag: 'Focus Session',
-    progress: 15,
-    overview: `Rigorous analytical curriculum isolated specifically for "${trimmed}". Emphasizes first-principles equilibrium, state representation, and systematic verification.`,
+    progress: 25,
+    overview: `Rigorous analytical curriculum isolated specifically for "${trimmed}". Emphasizes formal representation, task environment constraints, agent functions, and first-principles verification.`,
     governingFormulas: [
       {
-        name: `${trimmed} Governing Formulation`,
-        latex: '\\mathcal{D}(u) + \\nabla \\cdot \\mathcal{F}(u) = \\mathcal{S}(x, t), \\quad x \\in \\Omega',
-        description: `Fundamental balance relation governing "${trimmed}" establishing spatial and temporal conservation laws.`,
+        name: `${trimmed} Agent Mapping Formalization`,
+        latex: 'f: \\mathcal{P}^* \\longrightarrow \\mathcal{A}, \\quad a^* = \\arg\\max_{a \\in \\mathcal{A}} \\mathbb{E}\\left[ U(s\') \\mid \\mathcal{P}^*, a \\right]',
+        description: `Mathematical mapping relating percept sequence history P* to optimal actions maximizing expected utility in the context of "${trimmed}".`,
       },
       {
-        name: 'Constitutive Tensor & Boundary Invariance',
-        latex: '\\sigma_{ij} = \\mathcal{C}_{ijkl} \\, \\varepsilon_{kl}, \\quad \\left. u \\right|_{\\partial \\Omega} = u_0',
-        description: `Material behavior constitutive relationship and Dirichlet constraint defining well-posed boundary equilibrium for ${trimmed}.`,
-      },
-      {
-        name: 'Asymptotic Limit Convergence',
-        latex: '\\lim_{s \\to 0} s G(s) = y_{ss}, \\quad \\|u - u_h\\|_E \\le C h^p',
-        description: `Steady-state final value convergence and finite element asymptotic error bound under standard norms.`,
+        name: 'State Transition & Belief Update',
+        latex: 's_{t+1} = \\mathcal{T}(s_t, a_t, o_{t+1}), \\quad b(s\') = \\eta \\, P(o \\mid s\') \\sum_s P(s\' \\mid s, a) b(s)',
+        description: `Internal state transition and Bayesian belief update tracking unobservable environmental variables for ${trimmed}.`,
       },
     ],
     readingNotes: `### Isolated Study Focus: ${trimmed}
-Mastering **${trimmed}** requires decomposing the physical and mathematical mechanisms from pure first principles.
+Mastering **${trimmed}** within the BE CSE (AI & ML) syllabus requires decomposing the agent and algorithmic structures from first principles.
 
-#### 1. Fundamental Physical Conservation Axioms
-Every formulation describing ${trimmed} must satisfy invariant continuum mechanics:
-- Conservation of mass/charge
-- Invariant momentum balance
-- Thermodynamic energy conservation & minimal action principle
+#### 1. Task Environment Specification (PEAS)
+- **Performance Measure**: Quantify objective success criteria and expected outcome metrics.
+- **Environment**: Classify whether the state space is fully vs. partially observable, deterministic vs. stochastic, static vs. dynamic.
+- **Actuators & Sensors**: Map the interface boundaries between the agent and its operational domain.
 
-#### 2. Analytical & Discretization Methodology
-1. Establish coordinate frames and verify dimensional consistency.
-2. Formulate weak/state-space forms without assuming unphysical boundary constraints.
-3. Test convergence across asymptotic boundary limits.`,
-    defaultNotebookContent: `## Field Notes on ${trimmed}\n- Decomposing ${trimmed} into fundamental governing axioms.\n- Verifying coordinate invariance and boundary equilibrium.`,
+#### 2. Theoretical Formulation & Architecture
+1. Define whether the problem is best addressed via Simple Reflex, Model-Based, Goal-Based, or Utility-Based architectures.
+2. Formulate state transition models $s_{t+1} = \\mathcal{T}(s_t, a_t, o_{t+1})$.
+3. Verify convergence and asymptotic stability under stochastic uncertainty.`,
+    defaultNotebookContent: `## Field Notes on ${trimmed}\n- Formalizing ${trimmed} into PEAS criteria.\n- Mapping percept sequences to rational actions f: P* -> A.\n- Validating environment properties: observability, determinism, and dynamism.`,
   };
 }
 
@@ -145,7 +222,7 @@ function NotebookPageContent() {
   // ── Focus Lobby & Closed Notebook Cover State ──
   const [isCoverOpen, setIsCoverOpen] = useState<boolean>(false);
   const [isCoverAnimating, setIsCoverAnimating] = useState<boolean>(false);
-  const [studyTopic, setStudyTopic] = useState<string>('Applied Control Systems & State-Space');
+  const [studyTopic, setStudyTopic] = useState<string>('Intelligent Agents & Task Environments');
 
   // Cover Focus Timer State
   const [focusSeconds, setFocusSeconds] = useState<number>(25 * 60);
@@ -153,7 +230,7 @@ function NotebookPageContent() {
 
   // Active Subject isolated by Study Topic
   const [activeSubject, setActiveSubject] = useState<StudySubject>(() =>
-    resolveSubjectForTopic('Applied Control Systems & State-Space')
+    resolveSubjectForTopic('Intelligent Agents & Task Environments')
   );
 
   // Active Notebook Tab: 1 = Study Material, 2 = Explanations, 3 = Nexus AI Assistance, 4 = Note Taking, 5 = Quiz Practice
@@ -174,7 +251,11 @@ function NotebookPageContent() {
       const saved = localStorage.getItem('mm_note_taking_text');
       if (saved !== null) return saved;
     } catch {}
-    return 'Key Intuition: If the determinant of the controllability matrix det(C) approaches 0, the feedback control gain matrix ||K|| explodes towards infinity. Always compute Kalman rank before pole placement.';
+    return `## Course 23N502 · AI & Intelligent Agents Notes
+- Core Definition: An agent perceives its environment through sensors and acts upon it through actuators: Agent = Architecture + Program.
+- Agent Function: f: P* -> A (maps complete percept sequence history to actions).
+- Rationality Criterion: Maximizes expected performance given percept history P* and prior built-in knowledge.
+- AI Mythology: Ancient origins begin with Talos of Crete and mechanical automata, evolving through Descartes and Leibniz into computational agents.`;
   });
 
   useEffect(() => {
@@ -281,8 +362,9 @@ function NotebookPageContent() {
 
   // Handle Cover Opening Animation (0deg -> -180deg)
   const handleStartFocusSession = () => {
-    const topicToUse = studyTopic.trim() || 'Applied Control Systems & State-Space';
+    const topicToUse = studyTopic.trim() || 'Intelligent Agents & Task Environments';
     setStudyTopic(topicToUse);
+    setActiveSubject(resolveSubjectForTopic(topicToUse));
 
     // Play synchronized crisp paper opening sound
     playPageTurnSound();
@@ -729,8 +811,13 @@ function NotebookPageContent() {
                 <input
                   type="text"
                   value={studyTopic}
-                  onChange={(e) => setStudyTopic(e.target.value)}
-                  placeholder="e.g. Applied Control Systems, Navier-Stokes, FEA Weak Form..."
+                  onChange={(e) => {
+                    setStudyTopic(e.target.value);
+                    if (e.target.value.trim()) {
+                      setActiveSubject(resolveSubjectForTopic(e.target.value));
+                    }
+                  }}
+                  placeholder="e.g. AI Mythology, Intelligent Agents, PEAS Framework, 4 Views of AI, Open Source..."
                   className="w-full py-3 px-4 text-xs font-medium rounded-xl bg-[#121A14] border border-[#2E4234] text-[#FAF8F5] placeholder-[#6D7D72] outline-none focus:border-[#85A38C] transition shadow-inner"
                 />
 
@@ -738,15 +825,18 @@ function NotebookPageContent() {
                 <div className="flex items-center gap-1.5 flex-wrap pt-1">
                   <span className="text-[10px] font-mono text-[#6D7D72]">Suggestions:</span>
                   {[
-                    'Applied Control Systems & State-Space',
-                    'Finite Element Analysis & Continuum Mechanics',
-                    'Thermodynamics & Energy Conversion',
-                    'Robotics Kinematics & Coordinate Dynamics',
+                    'Intelligent Agents & Task Environments',
+                    'AI Foundations & Philosophy',
+                    'AI Mythology & Historical Origins',
+                    'Open Source Principles & Methodology',
                   ].map((presetTopic) => (
                     <button
                       key={presetTopic}
                       type="button"
-                      onClick={() => setStudyTopic(presetTopic)}
+                      onClick={() => {
+                        setStudyTopic(presetTopic);
+                        setActiveSubject(resolveSubjectForTopic(presetTopic));
+                      }}
                       className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#1C2820] hover:bg-[#243328] text-[#A3B8A8] border border-[#2E4234] transition cursor-pointer"
                     >
                       {presetTopic.split('&')[0].trim()}
