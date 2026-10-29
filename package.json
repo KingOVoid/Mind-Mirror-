@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "npm --prefix mindmirror2/client run dev --",
-    "build": "npm --prefix mindmirror2/client run build"
+    "postinstall": "npm --prefix mindmirror2/client install",
+    "build": "npm --prefix mindmirror2/client install && npm --prefix mindmirror2/client run build && node -e \"const fs=require('fs'); fs.cpSync('mindmirror2/client/dist', 'dist', {recursive: true});\""
   }
 }
