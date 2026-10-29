@@ -493,13 +493,14 @@ export const StationeryBackground: React.FC = () => {
   return (
     <div
       aria-hidden="true"
+      className="fixed inset-0 pointer-events-none overflow-hidden select-none"
       style={{
         position: 'fixed',
         top: 0,
         left: 0,
         width: '100vw',
         height: '100vh',
-        zIndex: -1,
+        zIndex: -10,
         pointerEvents: 'none',
         overflow: 'hidden',
         background: 'radial-gradient(ellipse at 50% 25%, #FAF7F0 0%, #F3EEE3 55%, #EBE3D3 100%)',

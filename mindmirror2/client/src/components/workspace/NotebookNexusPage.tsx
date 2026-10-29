@@ -3,6 +3,7 @@ import ReactMarkdown from '../SafeMarkdown';
 import type { StudySubject } from '../../data/subjectsData';
 
 import { apiClient } from '../../api/client';
+import { aiApi } from '../../api/ai';
 import {
   Send,
   BookOpen,
@@ -45,7 +46,7 @@ const INITIAL_MESSAGES: ChatMessage[] = [
 
 export const NotebookNexusPage: React.FC<NotebookNexusPageProps> = ({
   activeSubject,
-  savedNotes: _savedNotes,
+  savedNotes,
   onTurnPage,
   externalTriggerPrompt,
   onClearTriggerPrompt,
@@ -90,42 +91,34 @@ export const NotebookNexusPage: React.FC<NotebookNexusPageProps> = ({
     setLoading(true);
 
     try {
-      // Call backend AI copilot route
-      let replyText = '';
-      try {
-        const res = await apiClient.post<{ reply?: string; explanation?: string; overview?: string }>('/ai/copilot', {
-          message: query,
-        });
-        replyText = res.data?.reply || res.data?.explanation || res.data?.overview || '';
-      } catch {
-        try {
-          const fallbackRes = await apiClient.post<{ explanation?: string }>('/ai/explain-answer', {
-            questionText: query,
-          });
-          replyText = fallbackRes.data?.explanation || '';
-        } catch {
-          replyText = '';
-        }
-      }
+      const enrichedContext = `Subject: ${activeSubject.title} (${activeSubject.code})\nOverview: ${activeSubject.overview}\nCurriculum Notes: ${activeSubject.readingNotes.slice(0, 1000)}\nStudent Notes: ${(savedNotes || '').slice(0, 500)}`;
 
-      if (!replyText) {
-        replyText = `**First-Principles Analysis on "${query}"**:\n\n1. Establish the invariant physical laws governing the system (conservation of mass, momentum, energy).\n2. Normalize coordinates and verify dimensional consistency across all terms.\n3. Verify numerical convergence at asymptotic limits ($s \\to 0$, $s \\to \\infty$).`;
-      }
+      const res = await aiApi.copilotChat({
+        message: query.trim(),
+        context: enrichedContext,
+      });
+
+      const replyText =
+        res.reply ||
+        res.explanation ||
+        res.overview ||
+        `**Analysis on "${query}"**:\n\n1. Foundational principle: Focus on the core objective within ${activeSubject.title}.\n2. Formal logic: Deconstruct requirements and verify edge conditions.\n3. Takeaway: Synthesize takeaways for engineering mastery.`;
 
       const aiMsg: ChatMessage = {
         id: `ai_${Date.now()}`,
         sender: 'ai',
         text: replyText,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        tag: 'Nexus Analysis',
+        tag: 'Nexus AI',
       };
 
       setMessages((prev) => [...prev, aiMsg]);
-    } catch {
+    } catch (err: any) {
+      console.error('Nexus AI invocation error:', err);
       const fallbackMsg: ChatMessage = {
         id: `ai_${Date.now()}`,
         sender: 'ai',
-        text: `Analysis for **${query}**:\n1. Verify system governing equations.\n2. Ensure units and dimensional consistency.\n3. Test numerical limits at boundary extremes.`,
+        text: `### Nexus AI Analysis (${activeSubject.code}): ${query}\n\n- **Topic Focus**: ${activeSubject.title}\n- **Core Foundation**: In accordance with the ${activeSubject.code} baseline syllabus, review the fundamental definitions, task environment constraints, and formal representations.`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         tag: 'Curriculum Engine',
       };

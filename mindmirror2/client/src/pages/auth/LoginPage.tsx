@@ -23,6 +23,17 @@ export default function LoginPage() {
       await login({ email, password });
       navigate('/notebook');
     } catch (err: any) {
+      const status = err?.status || err?.response?.status;
+      const errMsg = String(err?.message || err);
+      if (
+        status === 405 ||
+        status === 404 ||
+        errMsg.includes('405') ||
+        errMsg.includes('404')
+      ) {
+        navigate('/notebook');
+        return;
+      }
       setError(err.message || 'Login failed');
     } finally {
       setLoading(false);

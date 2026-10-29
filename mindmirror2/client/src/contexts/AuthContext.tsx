@@ -64,12 +64,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem('mm_demo_user');
       await refreshSession();
     } catch (err: any) {
+      const status = err?.status || err?.response?.status;
       const errMsg = String(err?.message || err);
       if (
+        status === 405 ||
+        status === 404 ||
+        status === 502 ||
+        status === 503 ||
         errMsg.includes('405') ||
         errMsg.includes('404') ||
         errMsg.includes('Network Error') ||
-        errMsg.includes('Failed to fetch')
+        errMsg.includes('Failed to fetch') ||
+        errMsg.includes('ERR_CONNECTION_REFUSED')
       ) {
         console.warn('Backend API unavailable on static deployment (405/404). Initializing local student session.');
         const localUser: User = {
@@ -105,12 +111,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem('mm_demo_user');
       await refreshSession();
     } catch (err: any) {
+      const status = err?.status || err?.response?.status;
       const errMsg = String(err?.message || err);
       if (
+        status === 405 ||
+        status === 404 ||
+        status === 502 ||
+        status === 503 ||
         errMsg.includes('405') ||
         errMsg.includes('404') ||
         errMsg.includes('Network Error') ||
-        errMsg.includes('Failed to fetch')
+        errMsg.includes('Failed to fetch') ||
+        errMsg.includes('ERR_CONNECTION_REFUSED')
       ) {
         console.warn('Backend API unavailable on static deployment (405/404). Initializing student profile locally.');
         const localUser: User = {
@@ -123,9 +135,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const localProfile: StudentProfile = {
           id: 'prof_' + Date.now().toString(36),
           userId: localUser.id,
-          college: data.college || 'Engineering College',
-          course: data.course || 'Computer Science & Engineering',
-          semester: data.semester || 'Semester 6',
+          college: data.college || 'PSG College of Technology',
+          course: data.course || 'BE CSE (AI & ML)',
+          semester: data.semester || 'Semester 5',
           onboardingCompleted: true,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),

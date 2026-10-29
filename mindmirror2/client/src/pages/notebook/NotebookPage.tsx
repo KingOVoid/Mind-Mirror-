@@ -455,43 +455,33 @@ function NotebookPageContent() {
 
     try {
       // Build enriched context prompt combining curriculum notes + student notes from Page 4
-      const enrichedQuery = `[Topic Focus: ${activeSubject.title}]\n[Live Student Notes from Page 4: "${noteTakingText.slice(0, 500)}"]\n\nUser Question: ${textToSend}`;
+      const enrichedContext = `Subject: ${activeSubject.title} (${activeSubject.code})\nTopic Focus: ${studyTopic}\nLive Student Notes from Page 4: "${noteTakingText.slice(0, 500)}"\nCurriculum Notes: ${activeSubject.readingNotes.slice(0, 1000)}`;
 
-      let replyText = '';
-      try {
-        const res = await apiClient.post<{ reply?: string; explanation?: string; overview?: string }>(
-          '/ai/copilot',
-          { message: enrichedQuery }
-        );
-        replyText = res.data?.reply || res.data?.explanation || res.data?.overview || '';
-      } catch {
-        try {
-          const fallbackRes = await apiClient.post<{ explanation?: string }>('/ai/explain-answer', {
-            questionText: enrichedQuery,
-          });
-          replyText = fallbackRes.data?.explanation || '';
-        } catch {
-          replyText = '';
-        }
-      }
+      const res = await aiApi.copilotChat({
+        message: textToSend.trim(),
+        context: enrichedContext,
+      });
 
-      if (!replyText) {
-        replyText = `**First-Principles Analysis for "${studyTopic}"**:\n\n1. Establish the invariant physical laws governing the system.\n2. In accordance with your live notes: verify coordinate invariance and boundary equilibrium.\n3. Verify numerical convergence at asymptotic extremes ($s \\to 0$, $s \\to \\infty$).`;
-      }
+      const replyText =
+        res.reply ||
+        res.explanation ||
+        res.overview ||
+        `**Analysis for "${studyTopic}"**:\n\n1. Foundational principle: Focus on the core objective within ${activeSubject.title}.\n2. Formal logic: Deconstruct requirements and verify edge conditions.\n3. Takeaway: Synthesize takeaways for engineering mastery.`;
 
       const aiMsg: ChatMessage = {
         id: `ai_${Date.now()}`,
         sender: 'ai',
         text: replyText,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        tag: 'Nexus Analysis',
+        tag: 'Nexus AI',
       };
       setChatMessages((prev) => [...prev, aiMsg]);
-    } catch {
+    } catch (err: any) {
+      console.error('NotebookPage copilot error:', err);
       const fallbackMsg: ChatMessage = {
         id: `ai_${Date.now()}`,
         sender: 'ai',
-        text: `Analysis for **${studyTopic}**:\n1. Verify system governing equations.\n2. In accordance with your field notes: check dimensional consistency.\n3. Test numerical stability.`,
+        text: `Analysis for **${studyTopic}** (${activeSubject.code}):\n1. Verify system governing equations and task environment properties.\n2. In accordance with your field notes: check requirements.\n3. Test formal boundary conditions.`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         tag: 'Curriculum Engine',
       };

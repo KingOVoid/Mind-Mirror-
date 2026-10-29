@@ -79,6 +79,288 @@ async function callGemini(prompt: string, systemInstruction?: string): Promise<s
 // ────────────────────────────────────────────────────────────────────────────
 
 const ENGINEERING_PRESETS: Record<string, Omit<EngineeringStudyPlanResult, 'source'>> = {
+  'ai-intelligent-agents': {
+    courseworkTitle: 'Intelligent Agents & Task Environments (23N502 Unit 1-2)',
+    studentLevel: 'BE CSE (AI & ML) Semester V',
+    hoursPerWeek: 6,
+    totalWeeks: 4,
+    overview:
+      'Rigorous foundational breakdown of intelligent agent formalisms, the mathematical mapping f: P* -> A, PEAS task environment specifications, vacuum cleaner benchmark, environmental dimensions, and the four classical agent architectures.',
+    modules: [
+      {
+        phase: 'Week 1',
+        duration: '6 Hours',
+        title: 'Intelligent Agents, Sensors, Actuators & Agent Functions',
+        coreConcepts: [
+          'Agent architecture vs. agent program (Agent = Architecture + Program)',
+          'Percepts and complete percept sequences (P*)',
+          'Mathematical agent function f: P* -> A vs. physical agent program',
+          'Human Agents vs. Robot Agents vs. Software Agents (ChatGPT)',
+        ],
+        governingFormulas: [
+          'f: \\mathcal{P}^* \\longrightarrow \\mathcal{A}',
+          '\\text{Agent} = \\text{Architecture} + \\text{Program}',
+        ],
+        appliedProblems: [
+          'Construct the complete tabular agent function for a 2-room vacuum cleaner world with [Location, Status] percepts.',
+          'Analyze whether an LLM conversational assistant meets the formal definition of an intelligent agent.',
+        ],
+        activeRecallPrompt: 'Why does an agent function depend on the entire percept sequence history rather than merely the current percept?',
+      },
+      {
+        phase: 'Week 2',
+        duration: '6 Hours',
+        title: 'Rationality, Performance Measures & The PEAS Framework',
+        coreConcepts: [
+          'Rationality vs. Omniscience (maximizing expected performance vs. knowing actual outcomes)',
+          'General design rule for objective performance measures',
+          'PEAS breakdown: Performance Measure, Environment, Actuators, Sensors',
+          'Information gathering, exploration, and learning autonomy',
+        ],
+        governingFormulas: [
+          'a^* = \\arg\\max_{a \\in \\mathcal{A}} \\sum_{s\'} P(s\' \\mid \\mathcal{P}^*, a) \\, U(s\')',
+          '\\text{PEAS} = \\langle P, E, A, S \\rangle',
+        ],
+        appliedProblems: [
+          'Specify PEAS for a Medical Diagnosis System, Satellite Image Analyzer, and Refinery Controller.',
+          'Define the PEAS model for an autonomous internet shopping agent and compare its sensors against a robot.',
+        ],
+        activeRecallPrompt: 'What is the distinction between a rational agent and an omniscient agent?',
+      },
+      {
+        phase: 'Week 3',
+        duration: '6 Hours',
+        title: 'Six Dimensions of Task Environments',
+        coreConcepts: [
+          'Fully Observable vs. Partially Observable (Chess vs. Poker / Car in fog)',
+          'Deterministic vs. Stochastic (Calculator vs. Weather / Stock Market)',
+          'Episodic vs. Sequential (Spam filtering vs. Driving / Chess)',
+          'Static vs. Dynamic (Crossword vs. City traffic)',
+          'Discrete vs. Continuous (64 chess squares vs. robotic arm kinematics)',
+          'Single-Agent vs. Multi-Agent (Crossword solver vs. Soccer / Market trading)',
+        ],
+        governingFormulas: [
+          '\\text{Environment Complexity} = \\prod_{d=1}^6 \\text{Dim}_d',
+        ],
+        appliedProblems: [
+          'Classify the task environment of driving in Coimbatore city traffic across all six dimensions.',
+          'Determine which combination of environmental properties makes agent design the most challenging.',
+        ],
+        activeRecallPrompt: 'Why is a sequential, dynamic, partially observable, and continuous environment the hardest to solve?',
+      },
+      {
+        phase: 'Week 4',
+        duration: '6 Hours',
+        title: 'The Four Fundamental Agent Architectures',
+        coreConcepts: [
+          'Simple Reflex Agents: Condition-Action rules (if-then logic)',
+          'Model-Based Reflex Agents: Internal state tracking of unobserved world dynamics',
+          'Goal-Based Agents: Goal descriptions, search, and action planning',
+          'Utility-Based Agents: Real-valued utility functions U(s) for trade-offs and decision making under risk',
+        ],
+        governingFormulas: [
+          's_{t+1} = \\mathcal{T}(s_t, a_t, o_{t+1}) \\quad (\\text{Internal State Transition})',
+          'U(s) \\in \\mathbb{R} \\implies a^* = \\arg\\max_a \\mathbb{E}[U(s\')]',
+        ],
+        appliedProblems: [
+          'Trace why a Simple Reflex Agent fails in partially observable environments and how a Model-Based agent overcomes it.',
+          'Design the utility function for an autonomous taxi balancing passenger safety, trip duration, and fuel consumption.',
+        ],
+        activeRecallPrompt: 'What additional capabilities does a utility-based agent have over a goal-based agent?',
+      },
+    ],
+    highYieldCheckpoints: [
+      'Agent Function f: P* -> A table construction for Vacuum Cleaner World',
+      'PEAS analysis table for all 6 canonical systems (Medical, Satellite, Refinery, Part-picking, English Teacher, Shopping)',
+      '6 Environment dimensions classification matrix for real-world domains',
+      'Architectural differences between Reflex, Model-Based, Goal-Based, and Utility-Based agents',
+    ],
+  },
+  'ai-foundations': {
+    courseworkTitle: 'Artificial Intelligence: Foundations & Philosophy (23N502 Unit 1)',
+    studentLevel: 'BE CSE (AI & ML) Semester V',
+    hoursPerWeek: 6,
+    totalWeeks: 4,
+    overview:
+      'Philosophical and computational roots of AI, Russell & Norvig’s 4 Views of AI, Turing Test and Total Turing Test, flying-machine analogy, cognitive modeling vs neuroscience, Aristotle’s syllogistic logic, and modern state of the art.',
+    modules: [
+      {
+        phase: 'Week 1',
+        duration: '6 Hours',
+        title: 'Definition, Motivation & Four Classical Views of AI',
+        coreConcepts: [
+          'Descartes Cogito ergo sum and definition of intelligence',
+          'Dual goals of AI: Scientific understanding vs. Engineering intelligent entities',
+          'Russell & Norvig 2x2 Matrix: Thinking Humanly, Thinking Rationally, Acting Humanly, Acting Rationally',
+          'Why modern AI centers on Acting Rationally',
+        ],
+        governingFormulas: [
+          '\\text{AI Views} = \\{\\text{Think}, \\text{Act}\\} \\times \\{\\text{Humanly}, \\text{Rationally}\\}',
+        ],
+        appliedProblems: [
+          'Classify historical AI systems (ELIZA, MYCIN, Deep Blue, ChatGPT) into Russell & Norvig’s four quadrants.',
+          'Explain why acting rationally encompasses thinking rationally as a subdiscipline.',
+        ],
+        activeRecallPrompt: 'How do the human-centered and rationalist approaches to AI differ in their evaluation criteria?',
+      },
+      {
+        phase: 'Week 2',
+        duration: '6 Hours',
+        title: 'Turing Test, Total Turing Test & The Flying-Machine Analogy',
+        coreConcepts: [
+          'Alan Turing (1950) Imitation Game and text-based evaluation',
+          'Total Turing Test: adding Computer Vision, Robotics, and physical interaction',
+          'The Flying-Machine Analogy: why aerodynamics succeeded over bird wing-flapping',
+          'Lessons for AI: computational principles vs. biological mimicry',
+        ],
+        governingFormulas: [
+          '\\mathbb{P}(\\text{Interrogator identifies Machine}) \\approx 0.5',
+        ],
+        appliedProblems: [
+          'Evaluate Turing’s 1950 objections (theological, consciousness, Lady Lovelace objection) in the era of LLMs.',
+          'Debate whether passing the Loebner Prize constitutes genuine intelligence or shallow syntactic pattern matching.',
+        ],
+        activeRecallPrompt: 'What is the core epistemological insight of the flying-machine analogy for AI research?',
+      },
+      {
+        phase: 'Week 3',
+        duration: '6 Hours',
+        title: 'Cognitive Science, Neuroscience & The Laws of Thought',
+        coreConcepts: [
+          'Top-down Cognitive Science (GPS, SOAR, ACT-R) vs. Bottom-up Cognitive Neuroscience',
+          'Aristotle’s categorical syllogisms and deductive inference rules',
+          'Limitations of pure logicist AI: knowledge formalization bottleneck and combinatorial complexity',
+          'Handling real-world uncertainty, incomplete information, and noise',
+        ],
+        governingFormulas: [
+          '\\forall x \\, (P(x) \\implies Q(x)) \\;\\land\\; P(a) \\implies Q(a)',
+        ],
+        appliedProblems: [
+          'Convert informal reasoning statements into syllogistic premises and identify potential failure modes.',
+          'Contrast how ACT-R models human working memory limitations with how a rational agent stores knowledge.',
+        ],
+        activeRecallPrompt: 'Why did pure first-order logic fail as a universal foundation for practical AI systems?',
+      },
+      {
+        phase: 'Week 4',
+        duration: '6 Hours',
+        title: 'Interdisciplinary Roots & State of the Art Applications',
+        coreConcepts: [
+          'Seven foundational disciplines: Philosophy, Math, Economics, Neuroscience, Computer Eng, Linguistics, Psychology',
+          'Milestones: Deep Blue (1997), AlphaGo (2016), AlexNet (2012), Transformer models',
+          'Real-world autonomous systems: DARPA, Mars Rover, DART logistics, Boston Dynamics, Google Translate',
+          'Real-world Tamil speech translation and Coimbatore traffic navigation challenges',
+        ],
+        governingFormulas: [
+          '\\mathcal{R}(a) = \\arg\\max_a \\mathbb{E}[U(s\')]',
+        ],
+        appliedProblems: [
+          'Analyze how game theory and utility theory from economics merged with computer science to create multi-agent systems.',
+          'Assess whether real-time spoken English to spoken Tamil translation requires a Total Turing Test level of capability.',
+        ],
+        activeRecallPrompt: 'Which foundational disciplines contributed decision theory and utility theory to modern AI?',
+      },
+    ],
+    highYieldCheckpoints: [
+      'Russell & Norvig 4 Views matrix definitions and trade-offs',
+      'Turing Test vs Total Turing Test capabilities and the flying-machine analogy',
+      'Aristotelian syllogisms and limits of logic-based AI',
+      '7 Interdisciplinary roots and state-of-the-art case studies',
+    ],
+  },
+  'open-source-methodology': {
+    courseworkTitle: 'Open Source Principles and Methodology (23N503)',
+    studentLevel: 'BE CSE / Core Elective',
+    hoursPerWeek: 6,
+    totalWeeks: 4,
+    overview:
+      'Comprehensive study of open source software development, 10 Open Source Definition principles, licensing taxonomy (Permissive vs Copyleft), Free Software Foundation Four Freedoms, BSD history, GNU/Linux synergy, and OSI license review standards.',
+    modules: [
+      {
+        phase: 'Week 1',
+        duration: '6 Hours',
+        title: 'Open Source Software Concepts & The 10 OSD Principles',
+        coreConcepts: [
+          'Definition of OSS: public source code, free to use, modify, redistribute',
+          'OSS vs. Proprietary (Closed Source) software comparison table',
+          'Economic and engineering needs for OSS: cost, transparency, vendor lock-in, security, rapid innovation',
+          'The 10 Open Source Definition (OSD) principles maintained by the OSI',
+        ],
+        governingFormulas: [
+          '\\text{OSD Criteria} = \\{C_1, C_2, \\dots, C_{10}\\}',
+        ],
+        appliedProblems: [
+          'Compare total cost of ownership (TCO) and flexibility between PostgreSQL and Oracle Database for an enterprise app.',
+          'Evaluate whether a license prohibiting military use qualifies as open source under OSD Principle 6.',
+        ],
+        activeRecallPrompt: 'Why does OSD Principle 6 prohibit discrimination against specific fields of endeavor?',
+      },
+      {
+        phase: 'Week 2',
+        duration: '6 Hours',
+        title: 'Software Licensing Taxonomy: Permissive vs. Copyleft',
+        coreConcepts: [
+          'Intellectual property, copyright, and developer accountability',
+          'Permissive licenses: MIT License, Apache License 2.0 (patent grant), BSD 2-Clause / 3-Clause',
+          'Copyleft licenses: Strong Copyleft (GNU GPLv2 / GPLv3) vs. Weak Copyleft (LGPL, MPL, EPL)',
+          'Proprietary licensing models: perpetual, subscription, OEM, trial',
+        ],
+        governingFormulas: [
+          '\\forall D \\in \\text{Derivatives}(S), \\quad \\text{License}(D) \\equiv \\text{GPL}',
+        ],
+        appliedProblems: [
+          'Select the optimal license for a venture-funded developer tool aiming for maximum enterprise adoption.',
+          'Analyze the legal consequences of dynamically linking a proprietary C++ library against a GPLv3 component.',
+        ],
+        activeRecallPrompt: 'What is the practical difference between the MIT license and the GNU GPLv3 regarding derivative works?',
+      },
+      {
+        phase: 'Week 3',
+        duration: '6 Hours',
+        title: 'Free Software Foundation, BSD History & GNU/Linux Legacy',
+        coreConcepts: [
+          'Richard Stallman and the FSF (1985): The Four Software Freedoms (Freedoms 0, 1, 2, 3)',
+          'History of BSD (1977 UCB, Bill Joy, 4.2BSD TCP/IP stack, FreeBSD, NetBSD, OpenBSD)',
+          'The GNU Project (1983): GCC, Emacs, Bash, Coreutils, glibc, and Hurd kernel',
+          'Linus Torvalds (1991) and the Linux kernel: birth of GNU/Linux and cloud computing',
+        ],
+        governingFormulas: [
+          '\\mathcal{F} = \\{F_0, F_1, F_2, F_3\\}',
+          '\\text{GNU/Linux} = \\text{GNU Tools} + \\text{Linux Kernel}',
+        ],
+        appliedProblems: [
+          'Map each of Stallman’s Four Freedoms to specific developer workflows in Git and GitHub.',
+          'Trace the lineage of how 4.2BSD TCP/IP code lives on in modern macOS, iOS, and networking gear.',
+        ],
+        activeRecallPrompt: 'Which two of the FSF’s Four Freedoms strictly require access to human-readable source code?',
+      },
+      {
+        phase: 'Week 4',
+        duration: '6 Hours',
+        title: 'Open Source Initiative (OSI), Open Standards & Contribution Lifecycle',
+        coreConcepts: [
+          'OSI founded in 1998 by Bruce Perens and Eric Raymond after Netscape source release',
+          'The 5-stage OSI License Approval Process (Submission -> Review -> 30-Day Discussion -> Board Vote -> Approval)',
+          'Open Standards and the 5 principles: Due process, broad consensus, transparency, balance, openness',
+          'The 6-stage OSS development process: Identify Need -> Fork/Clone -> Develop & Commit -> PR -> Review & Merge -> Release',
+        ],
+        governingFormulas: [
+          '\\text{Workflow} = \\text{Fork} \\to \\text{Branch} \\to \\text{Commit} \\to \\text{PR} \\to \\text{Review} \\to \\text{Merge}',
+        ],
+        appliedProblems: [
+          'Walk through submitting a pull request to an upstream repository and resolving maintainer review comments.',
+          'Evaluate FRAND (Fair, Reasonable, and Non-Discriminatory) patent licensing terms in the context of Open Standards.',
+        ],
+        activeRecallPrompt: 'What are the 5 required stages in the OSI formal license approval pipeline?',
+      },
+    ],
+    highYieldCheckpoints: [
+      'The 10 Open Source Definition (OSD) principles',
+      'Permissive vs Copyleft licensing comparison matrix (MIT, Apache, BSD, GPLv2, GPLv3)',
+      'Richard Stallman\'s Four Software Freedoms (Freedoms 0-3)',
+      'OSI 5-stage approval process and 6-stage development lifecycle',
+    ],
+  },
   'control-systems': {
     courseworkTitle: 'Applied Control Systems & State-Space Engineering',
     studentLevel: 'Undergraduate / Graduate Core',

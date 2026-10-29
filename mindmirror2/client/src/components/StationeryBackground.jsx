@@ -453,7 +453,7 @@ const StationeryBackground = () => {
   return (
     <div
       aria-hidden="true"
-      className="fixed inset-0 -z-10 pointer-events-none overflow-hidden"
+      className="fixed inset-0 pointer-events-none overflow-hidden select-none"
       style={{
         position: 'fixed',
         top: 0,
