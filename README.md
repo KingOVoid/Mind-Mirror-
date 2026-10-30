@@ -68,3 +68,11 @@ npm run dev
 ```
 - Client runs on `http://localhost:5173`
 - Server runs on `http://localhost:4000`
+
+---
+
+## Contributors
+
+- [@KingOVoid](https://github.com/KingOVoid)
+- [@nhayafathima](https://github.com/nhayafathima)
+
