@@ -607,43 +607,140 @@ export async function analyzeStudyDocument(
   targetTopic?: string
 ): Promise<DocumentAnalysisResult> {
   const trimmed = documentText.trim();
-  const wordCount = trimmed.split(/\\s+/).filter(Boolean).length;
-  const snippet = trimmed.slice(0, 2000);
+  const wordCount = trimmed ? trimmed.split(/\s+/).filter(Boolean).length : 0;
+  const snippet = trimmed.slice(0, 8000);
+  const resolvedFileName = fileName || 'Uploaded Study Notes';
+
+  const apiKey = getRuntimeApiKey();
+
+  if (apiKey && snippet) {
+    for (const model of ['gemini-3.1-flash-lite', 'gemini-3.8-flash', 'gemini-3.5-flash']) {
+      try {
+        const ai = new GoogleGenAI({ apiKey });
+        const prompt = `Analyze this engineering course document:
+Document Title: "${resolvedFileName}"
+Target Topic Context: "${targetTopic || 'Engineering Foundations'}"
+Word Count: ${wordCount} words
+
+Document Text Content:
+${snippet}
+
+You are Nexus, an elite engineering professor. Provide a rigorous first-principles study breakdown tailored for student mastery.
+Return ONLY valid JSON (no markdown formatting wrapping the JSON, no text before or after):
+{
+  "summary": "### Executive Conceptual Breakdown\\n[Detailed 2 to 4 paragraph synthesis in clean markdown with concepts, definitions, and applications]",
+  "keyTakeaways": [
+    "High-yield takeaway 1",
+    "High-yield takeaway 2",
+    "High-yield takeaway 3",
+    "High-yield takeaway 4"
+  ],
+  "governingFormulas": [
+    {
+      "name": "Formula or Law Name",
+      "latex": "LaTeX notation (e.g. f: \\\\mathcal{P}^* \\\\to \\\\mathcal{A})",
+      "description": "Clear explanation of variables and significance"
+    }
+  ]
+}`;
+
+        const response = await Promise.race([
+          ai.models.generateContent({
+            model,
+            contents: prompt,
+            config: {
+              systemInstruction: NEXUS_SYSTEM_INSTRUCTION,
+              temperature: 0.2,
+            },
+          }),
+          new Promise<null>((_, reject) =>
+            setTimeout(() => reject(new Error('Timeout')), 14000)
+          ),
+        ]);
+
+        const rawText = (response as any)?.text?.trim() || '';
+        const cleaned = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleaned);
+
+        if (parsed.summary && Array.isArray(parsed.keyTakeaways) && parsed.keyTakeaways.length > 0) {
+          return {
+            summary: parsed.summary,
+            keyTakeaways: parsed.keyTakeaways,
+            governingFormulas: parsed.governingFormulas || [],
+            fileName: resolvedFileName,
+            source: 'gemini',
+          };
+        }
+      } catch (err: any) {
+        console.warn(`[Gemini Client] Document analysis with ${model} failed, trying next:`, err?.message || err);
+      }
+    }
+  }
+
+  // Fallback: If Gemini is offline/busy, dynamically synthesize a rich first-principles curriculum breakdown
+  const lower = (documentText + ' ' + (fileName || '')).toLowerCase();
+  let keyTakeaways = [
+    `Deconstruct the domain of "${targetTopic || resolvedFileName}" into measurable performance criteria.`,
+    'Validate task environment assumptions across all six operational dimensions.',
+    'Formulate state transitions and verify asymptotic convergence under uncertainty.',
+    'Align implementation with formal engineering specifications and licensing standards.',
+  ];
+
+  let governingFormulas = [
+    {
+      name: 'Agent Rationality Mapping',
+      latex: 'f: \\mathcal{P}^* \\longrightarrow \\mathcal{A}, \\quad a^* = \\arg\\max_a \\mathbb{E}[U(s\')]',
+      description: 'Maps complete percept history to expected-performance maximizing actions.',
+    },
+  ];
+
+  if (lower.includes('open source') || lower.includes('license') || lower.includes('osd') || lower.includes('copyleft')) {
+    keyTakeaways = [
+      'Open Source Definition (OSD) enforces 10 principles ensuring free redistribution and source integrity.',
+      'Permissive licenses (MIT, Apache 2.0, BSD) grant universal commercialization with minimal attribution.',
+      'Copyleft licenses (GNU GPLv2/v3) preserve software freedom reciprocally across all derivative works.',
+      "Richard Stallman's 4 Freedoms (FSF 1985) establish freedom to run, study, redistribute, and modify.",
+    ];
+    governingFormulas = [
+      {
+        name: 'Copyleft Reciprocity Condition',
+        latex: '\\forall D \\in \\text{Derivatives}(S), \\quad \\text{License}(D) = \\text{License}(S)',
+        description: 'All modified and combined derivative works must be distributed under identical copyleft terms.',
+      },
+    ];
+  } else if (lower.includes('myth') || lower.includes('talos') || lower.includes('history') || lower.includes('turing')) {
+    keyTakeaways = [
+      'AI mythology traces back to ancient automata: Talos of Crete (forged by Hephaestus) and the Golem of Prague.',
+      'Philosophers Descartes (Mind-Body dualism) and Leibniz (Calculus Ratiocinator) pioneered mechanized reason.',
+      'McCulloch & Pitts (1943) introduced the first mathematical model of an artificial neural network.',
+      'Alan Turing (1950) formulated the operational Turing Test in "Computing Machinery and Intelligence".',
+      'The Dartmouth Workshop (1956) officially founded Artificial Intelligence as a distinct engineering discipline.',
+    ];
+    governingFormulas = [
+      {
+        name: 'McCulloch-Pitts Artificial Neuron',
+        latex: 'y = \\Theta\\left(\\sum_{i=1}^n w_i x_i - \\theta\\right)',
+        description: 'Binary threshold activation summing weighted inputs against a threshold theta.',
+      },
+    ];
+  }
+
+  const fallbackSummary = `### Synthesized First-Principles Analysis: "${resolvedFileName}"
+*Word count parsed: ${wordCount} words.*
+
+#### 1. Core Foundational Breakdown
+This material introduces the theoretical and practical foundations of **${targetTopic || resolvedFileName}**. The text establishes rigorous definitions, operational state spaces, and governing behavioral constraints.
+
+#### 2. Theoretical Formulation & Architecture
+1. **Mathematical Representation**: Model the core dynamics using formal state transitions and mapping functions.
+2. **Environment Specification**: Identify whether the operational space is fully observable, deterministic, and discrete.
+3. **Evaluation Metric**: Evaluate system performance against explicit, quantifiable objective criteria.`;
 
   return {
-    documentName: fileName || 'Uploaded Study Notes',
-    wordCount,
-    executiveSummary: `Synthesized curriculum analysis on "${targetTopic || fileName || 'Engineering Study Notes'}". Extracted foundational concepts, formal definitions, and high-yield exam takeaways.`,
-    highYieldTakeaways: [
-      'Deconstruct the problem into percepts, state transitions, and expected utility.',
-      'Validate system assumptions across all six task environment dimensions.',
-      'Verify adherence to licensing and formal verification constraints.',
-    ],
-    governingFormulas: [
-      {
-        name: 'Agent Rationality Mapping',
-        latex: 'f: \\mathcal{P}^* \\longrightarrow \\mathcal{A}, \\quad a^* = \\arg\\max_a \\mathbb{E}[U(s\')]',
-        description: 'Maps complete percept history to expected-performance maximizing actions.',
-      },
-    ],
-    curriculumAlignment: {
-      topicMatch: targetTopic || 'Artificial Intelligence (23N502)',
-      confidenceScore: 94,
-    },
-    practiceQuestions: [
-      {
-        id: 'q1',
-        question: `How does the material in ${fileName || 'this document'} characterize rational agency?`,
-        options: [
-          'Maximizing expected performance given percept history and prior knowledge',
-          'Achieving absolute omniscience with perfect knowledge of the future',
-          'Executing fixed condition-action reflex rules without adaptation',
-          'Randomized trial and error without objective performance measures',
-        ],
-        correctAnswer: 'Maximizing expected performance given percept history and prior knowledge',
-        explanation: 'Rationality centers on expected performance maximization under environmental uncertainty.',
-      },
-    ],
+    summary: fallbackSummary,
+    keyTakeaways,
+    governingFormulas,
+    fileName: resolvedFileName,
     source: 'curriculum-engine',
   };
 }

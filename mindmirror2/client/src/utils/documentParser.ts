@@ -1,3 +1,22 @@
+// Polyfill Stage 3 / 4 methods required by pdfjs-dist v6 in browser / Node runtimes
+if (typeof Uint8Array !== 'undefined' && !(Uint8Array.prototype as any).toHex) {
+  (Uint8Array.prototype as any).toHex = function () {
+    return Array.from(this)
+      .map((b: any) => b.toString(16).padStart(2, '0'))
+      .join('');
+  };
+}
+
+if (typeof Math !== 'undefined' && !(Math as any).sumPrecise) {
+  (Math as any).sumPrecise = function (items: Iterable<number>) {
+    let sum = 0;
+    for (const n of items) {
+      sum += Number(n) || 0;
+    }
+    return sum;
+  };
+}
+
 import JSZip from 'jszip';
 
 export interface ParsedDocument {
@@ -47,7 +66,7 @@ async function parseDocx(file: File): Promise<string> {
 async function parsePptx(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer();
   const zip = await JSZip.loadAsync(arrayBuffer);
-  
+
   // Find all slide XML files
   const slidePaths = Object.keys(zip.files)
     .filter((path) => path.startsWith('ppt/slides/slide') && path.endsWith('.xml'))
@@ -99,17 +118,30 @@ async function parsePptx(file: File): Promise<string> {
 async function parsePdf(file: File): Promise<string> {
   try {
     const pdfjsLib = await import('pdfjs-dist');
-    // Set worker from unpkg/cdnjs or disable if needed
+
+    // Configure worker source gracefully
     if (pdfjsLib.GlobalWorkerOptions && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version || '4.10.38'}/pdf.worker.min.mjs`;
+      try {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+          'pdfjs-dist/build/pdf.worker.min.mjs',
+          import.meta.url
+        ).toString();
+      } catch {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version || '6.4.299'}/pdf.worker.min.mjs`;
+      }
     }
 
     const arrayBuffer = await file.arrayBuffer();
-    const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) });
+    const loadingTask = pdfjsLib.getDocument({
+      data: new Uint8Array(arrayBuffer),
+      isEvalSupported: false,
+      useSystemFonts: true,
+    });
     const pdf = await loadingTask.promise;
     const pageTexts: string[] = [];
 
-    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+    const maxPages = Math.min(pdf.numPages, 60);
+    for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
       const page = await pdf.getPage(pageNum);
       const textContent = await page.getTextContent();
       const strings = textContent.items
@@ -124,7 +156,7 @@ async function parsePdf(file: File): Promise<string> {
       return pageTexts.join('\n\n');
     }
   } catch (err: any) {
-    console.warn('[DocumentParser] pdfjs-dist extraction failed, falling back to stream scanner:', err.message);
+    console.warn('[DocumentParser] pdfjs-dist extraction warning:', err?.message || err);
   }
 
   // Fallback: extract ASCII / readable strings directly from PDF binary buffer
@@ -146,13 +178,13 @@ async function parsePdf(file: File): Promise<string> {
   if (matches && matches.length > 0) {
     const cleaned = matches
       .map((m) => m.slice(1, -1).trim())
-      .filter((s) => s.length > 2 && !/^[0-9\s.]+$/.test(s));
+      .filter((s) => s.length > 2 && !/^[0-9\s.]+$/.test(s) && !s.includes('/Filter') && !s.includes('/Type'));
     if (cleaned.length > 0) {
       return cleaned.join(' ');
     }
   }
 
-  return raw.replace(/\s+/g, ' ').slice(0, 5000);
+  return raw.replace(/<<[^>]+>>/g, ' ').replace(/\/[\w]+/g, ' ').replace(/\s+/g, ' ').slice(0, 5000);
 }
 
 /**

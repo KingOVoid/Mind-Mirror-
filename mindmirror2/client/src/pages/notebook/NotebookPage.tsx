@@ -536,8 +536,11 @@ function NotebookPageContent() {
     setChatLoading(true);
 
     try {
-      // Build enriched context prompt combining curriculum notes + student notes from Page 4
-      const enrichedContext = `Subject: ${activeSubject.title} (${activeSubject.code})\nTopic Focus: ${studyTopic}\nLive Student Notes from Page 4: "${noteTakingText.slice(0, 500)}"\nCurriculum Notes: ${activeSubject.readingNotes.slice(0, 1000)}`;
+      // Build enriched context prompt combining curriculum notes + student notes from Page 4 + uploaded document
+      let enrichedContext = `Subject: ${activeSubject.title} (${activeSubject.code})\nTopic Focus: ${studyTopic}\nLive Student Notes from Page 4: "${noteTakingText.slice(0, 500)}"\nCurriculum Notes: ${activeSubject.readingNotes.slice(0, 1000)}`;
+      if (documentSummary) {
+        enrichedContext += `\n\n[Active Uploaded Document: "${documentSummary.fileName}"]\nSummary: ${documentSummary.summary.slice(0, 1200)}\nKey Takeaways: ${(documentSummary.keyTakeaways || []).join('; ')}`;
+      }
 
       const res = await aiApi.copilotChat({
         message: textToSend.trim(),
@@ -1494,7 +1497,7 @@ function NotebookPageContent() {
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-black/5 text-[#6D736E]">
-                                    {documentSummary.source === 'gemini' ? 'Gemini 3.8 Flash' : 'Curriculum Engine'}
+                                    {documentSummary.source === 'gemini' ? 'Gemini AI Synthesis' : 'Curriculum Engine'}
                                   </span>
                                   <button
                                     onClick={() => {
@@ -1540,6 +1543,23 @@ function NotebookPageContent() {
                                       </li>
                                     ))}
                                   </ul>
+                                </div>
+                              )}
+
+                              {documentSummary.governingFormulas && documentSummary.governingFormulas.length > 0 && (
+                                <div className="pt-2 border-t border-[#E6E1D8] space-y-1.5">
+                                  <span className="text-[11px] font-bold font-mono text-[#43634D] uppercase tracking-wider">
+                                    Governing Equations & Formulas
+                                  </span>
+                                  <div className="space-y-1.5">
+                                    {documentSummary.governingFormulas.map((f, fIdx) => (
+                                      <div key={fIdx} className="p-2 rounded-lg bg-[#FAF8F5] border border-[#E6E1D8] text-xs">
+                                        <div className="font-semibold text-[#242725]">{f.name}</div>
+                                        <div className="font-mono text-[#5B8266] my-0.5">{f.latex}</div>
+                                        <div className="text-[11px] text-[#6D736E]">{f.description}</div>
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
                               )}
                             </div>
