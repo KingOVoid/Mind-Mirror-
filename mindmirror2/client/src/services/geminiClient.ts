@@ -401,7 +401,7 @@ export async function askNexusCopilot(query: string, context?: string): Promise<
           : query;
 
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 4500);
+        const timeout = setTimeout(() => controller.abort(), 12000);
 
         const response = await Promise.race([
           ai.models.generateContent({
@@ -410,7 +410,7 @@ export async function askNexusCopilot(query: string, context?: string): Promise<
             config: { systemInstruction: NEXUS_SYSTEM_INSTRUCTION },
           }),
           new Promise<null>((_, reject) =>
-            setTimeout(() => reject(new Error('Timeout')), 4500)
+            setTimeout(() => reject(new Error('Timeout')), 12000)
           ),
         ]);
 
